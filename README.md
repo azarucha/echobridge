@@ -108,8 +108,8 @@ More in [docs/troubleshooting.md](docs/troubleshooting.md).
 ## Support
 
 This is a personal project I share as is. Issues with a clear description are welcome, pull requests even more,
-but I can't promise answers or fixes. If echobridge is useful to you, you can buy me a coffee
-(see the Sponsor button).
+but I can't promise answers or fixes. If echobridge is useful to you, you can
+[buy me a coffee on Ko-fi](https://ko-fi.com/azarucha).
 
 ## Credits
 
