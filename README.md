@@ -4,6 +4,8 @@
 (Apple Music, Podcasts, Spotify, YouTube…) and the sound comes out of your Echo, about 2 seconds behind.
 The iPhone volume buttons control the Echo.
 
+<p align="center"><img src="docs/demo.svg" alt="Pick a room in the iPhone AirPlay menu, echobridge streams it to the Echo, the volume buttons control the Echo" width="800"></p>
+
 [![test](https://github.com/azarucha/echobridge/actions/workflows/test.yml/badge.svg)](https://github.com/azarucha/echobridge/actions/workflows/test.yml)
 ![license](https://img.shields.io/badge/license-MIT-blue)
 

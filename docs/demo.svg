@@ -1,0 +1,132 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 380" width="800" height="380" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <title>echobridge: pick a room in the iPhone AirPlay menu, echobridge streams it to the Echo, the volume buttons control the Echo</title>
+  <style>
+    /* One 10 s loop. Percentages: 0-28 pick a room, 30-58 stream to the Echo, 60-95 volume buttons */
+    .loop { animation-duration: 10s; animation-iteration-count: infinite; animation-timing-function: linear; }
+    .check-iphone { animation-name: checkIphone; }
+    .check-kitchen { animation-name: checkKitchen; }
+    .tap { animation-name: tap; transform-origin: 120px 162px; }
+    .row-kitchen { animation-name: rowKitchen; }
+    .flow1 { animation-name: flow1; }
+    .flow2 { animation-name: flow2; }
+    .dash { stroke-dasharray: 6 8; animation: dash 0.8s linear infinite; }
+    .ring { animation-name: ring; }
+    .waves { animation-name: waves; }
+    .wave { animation: wave 1.4s ease-out infinite; transform-origin: 650px 205px; }
+    .wave2 { animation-delay: 0.45s; }
+    .wave3 { animation-delay: 0.9s; }
+    .button { animation-name: button; }
+    .volume { animation-name: volume; }
+    .vol-label { animation-name: volLabel; }
+    .cap1 { animation-name: cap1; }
+    .cap2 { animation-name: cap2; }
+    .cap3 { animation-name: cap3; }
+    .box-glow { animation-name: boxGlow; }
+
+    @keyframes checkIphone { 0%, 14% { opacity: 1; } 15%, 100% { opacity: 0; } }
+    @keyframes checkKitchen { 0%, 14% { opacity: 0; } 15%, 100% { opacity: 1; } }
+    @keyframes tap { 0%, 9% { opacity: 0; transform: scale(0.3); } 11% { opacity: 0.55; transform: scale(1); } 16%, 100% { opacity: 0; transform: scale(1.6); } }
+    @keyframes rowKitchen { 0%, 12% { opacity: 0; } 15%, 100% { opacity: 1; } }
+    @keyframes flow1 { 0%, 17% { opacity: 0; } 21%, 96% { opacity: 1; } 100% { opacity: 0; } }
+    @keyframes flow2 { 0%, 27% { opacity: 0; } 31%, 96% { opacity: 1; } 100% { opacity: 0; } }
+    @keyframes boxGlow { 0%, 19% { opacity: 0; } 23%, 96% { opacity: 1; } 100% { opacity: 0; } }
+    @keyframes ring { 0%, 33% { stroke: #475569; } 37%, 96% { stroke: #38bdf8; } 100% { stroke: #475569; } }
+    @keyframes waves { 0%, 35% { opacity: 0; } 39%, 96% { opacity: 1; } 100% { opacity: 0; } }
+    @keyframes wave { 0% { opacity: 0.9; transform: scale(0.7); } 100% { opacity: 0; transform: scale(1.35); } }
+    @keyframes button { 0%, 61% { transform: translateX(0); } 62.5% { transform: translateX(3px); } 64%, 69% { transform: translateX(0); } 70.5% { transform: translateX(3px); } 72%, 100% { transform: translateX(0); } }
+    @keyframes volume { 0%, 62% { stroke-dasharray: 30 100; } 64%, 70% { stroke-dasharray: 45 100; } 72%, 96% { stroke-dasharray: 60 100; } 100% { stroke-dasharray: 30 100; } }
+    @keyframes volLabel { 0%, 60% { opacity: 0; } 63%, 94% { opacity: 1; } 97%, 100% { opacity: 0; } }
+    @keyframes cap1 { 0%, 27% { opacity: 1; } 29%, 100% { opacity: 0; } }
+    @keyframes cap2 { 0%, 28% { opacity: 0; } 30%, 57% { opacity: 1; } 59%, 100% { opacity: 0; } }
+    @keyframes cap3 { 0%, 58% { opacity: 0; } 60%, 95% { opacity: 1; } 97%, 100% { opacity: 0; } }
+  </style>
+
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f172a"/>
+      <stop offset="1" stop-color="#1e293b"/>
+    </linearGradient>
+    <radialGradient id="echoBody" cx="0.4" cy="0.35" r="0.75">
+      <stop offset="0" stop-color="#475569"/>
+      <stop offset="1" stop-color="#1e293b"/>
+    </radialGradient>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#38bdf8"/>
+    </marker>
+  </defs>
+
+  <rect width="800" height="380" rx="18" fill="url(#bg)"/>
+
+  <!-- iPhone -->
+  <g>
+    <rect class="button loop" x="187" y="96" width="5" height="34" rx="2" fill="#64748b"/>
+    <rect x="40" y="40" width="150" height="290" rx="26" fill="#020617" stroke="#334155" stroke-width="3"/>
+    <rect x="52" y="52" width="126" height="266" rx="18" fill="#111827"/>
+    <rect x="95" y="58" width="40" height="10" rx="5" fill="#020617"/>
+    <text x="115" y="96" fill="#e2e8f0" font-size="13" font-weight="600" text-anchor="middle">AirPlay</text>
+    <!-- rows -->
+    <g font-size="12" fill="#e2e8f0">
+      <rect x="60" y="110" width="110" height="28" rx="7" fill="#1f2937"/>
+      <text x="70" y="128">iPhone</text>
+      <text class="check-iphone loop" x="158" y="128" fill="#38bdf8" font-weight="700">✓</text>
+
+      <rect x="60" y="148" width="110" height="28" rx="7" fill="#1f2937"/>
+      <rect class="row-kitchen loop" x="60" y="148" width="110" height="28" rx="7" fill="#0c4a6e"/>
+      <text x="70" y="166">Kitchen</text>
+      <text class="check-kitchen loop" x="158" y="166" fill="#38bdf8" font-weight="700">✓</text>
+      <circle class="tap loop" cx="120" cy="162" r="18" fill="#e0f2fe"/>
+
+      <rect x="60" y="186" width="110" height="28" rx="7" fill="#1f2937"/>
+      <text x="70" y="204">Living room</text>
+
+      <rect x="60" y="224" width="110" height="28" rx="7" fill="#1f2937"/>
+      <text x="70" y="242">Everywhere</text>
+    </g>
+    <text x="115" y="290" fill="#64748b" font-size="10" text-anchor="middle">any app: Music, Podcasts…</text>
+  </g>
+
+  <!-- AirPlay flow -->
+  <g class="flow1 loop">
+    <path class="dash" d="M200 162 C 245 162, 265 185, 300 185" fill="none" stroke="#38bdf8" stroke-width="3" marker-end="url(#arrow)"/>
+    <text x="250" y="150" fill="#7dd3fc" font-size="11" text-anchor="middle">AirPlay</text>
+  </g>
+
+  <!-- echobridge box -->
+  <g>
+    <rect class="box-glow loop" x="300" y="140" width="190" height="90" rx="14" fill="none" stroke="#38bdf8" stroke-width="6" opacity="0.35"/>
+    <rect x="300" y="140" width="190" height="90" rx="14" fill="#0b1220" stroke="#38bdf8" stroke-width="2"/>
+    <text x="395" y="176" fill="#f8fafc" font-size="18" font-weight="700" text-anchor="middle">echobridge</text>
+    <text x="395" y="198" fill="#94a3b8" font-size="11" text-anchor="middle">shairport-sync → MP3 stream</text>
+    <text x="395" y="214" fill="#94a3b8" font-size="11" text-anchor="middle">on a Pi or NAS at home</text>
+  </g>
+
+  <!-- stream flow -->
+  <g class="flow2 loop">
+    <path class="dash" d="M490 185 C 525 185, 545 205, 585 205" fill="none" stroke="#38bdf8" stroke-width="3" marker-end="url(#arrow)"/>
+    <text x="538" y="174" fill="#7dd3fc" font-size="11" text-anchor="middle">Alexa skill</text>
+  </g>
+
+  <!-- Echo -->
+  <g>
+    <g class="waves loop" fill="none" stroke="#38bdf8" stroke-width="3" stroke-linecap="round">
+      <path class="wave" d="M712 175 Q 728 205 712 235"/>
+      <path class="wave wave2" d="M722 165 Q 744 205 722 245"/>
+      <path class="wave wave3" d="M732 155 Q 760 205 732 255"/>
+    </g>
+    <ellipse cx="650" cy="262" rx="58" ry="8" fill="#020617" opacity="0.6"/>
+    <circle cx="650" cy="205" r="58" fill="url(#echoBody)"/>
+    <ellipse class="ring loop" cx="650" cy="160" rx="40" ry="9" fill="none" stroke="#475569" stroke-width="5"/>
+    <!-- volume indicator -->
+    <circle cx="650" cy="205" r="70" fill="none" stroke="#1e293b" stroke-width="6"/>
+    <circle class="volume loop" cx="650" cy="205" r="70" fill="none" stroke="#38bdf8" stroke-width="6" stroke-linecap="round" pathLength="100" stroke-dasharray="30 100" transform="rotate(130 650 205)"/>
+    <text x="650" y="300" fill="#e2e8f0" font-size="13" font-weight="600" text-anchor="middle">Echo · Kitchen</text>
+    <text class="vol-label loop" x="650" y="318" fill="#7dd3fc" font-size="11" text-anchor="middle">volume up</text>
+  </g>
+
+  <!-- captions -->
+  <g font-size="15" fill="#f1f5f9" text-anchor="middle" font-weight="500">
+    <text class="cap1 loop" x="400" y="356">1 · Pick a room in the iPhone's AirPlay menu</text>
+    <text class="cap2 loop" x="400" y="356">2 · echobridge streams it to the Echo (~2 s)</text>
+    <text class="cap3 loop" x="400" y="356">3 · The iPhone volume buttons control the Echo</text>
+  </g>
+</svg>
