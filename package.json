@@ -1,0 +1,23 @@
+{
+  "name": "echobridge",
+  "version": "0.1.0",
+  "description": "AirPlay from your iPhone to Amazon Echo speakers, with per-room receivers, volume buttons and Fire TV stereo",
+  "main": "src/index.js",
+  "bin": {
+    "echobridge": "bin/echobridge.js"
+  },
+  "private": true,
+  "license": "MIT",
+  "author": "Alexis Zarucha",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "alexa-remote2": "^8.1.1",
+    "express": "^5.1.0"
+  }
+}

@@ -1,0 +1,24 @@
+[Unit]
+Description=echobridge (AirPlay to Amazon Echo)
+After=network-online.target avahi-daemon.service
+Wants=network-online.target
+
+[Service]
+User=echobridge
+Group=echobridge
+WorkingDirectory=/opt/echobridge
+ExecStart=/usr/bin/env node src/index.js
+EnvironmentFile=/etc/echobridge/echobridge.env
+Environment=NODE_ENV=production
+Environment=DATA_DIR=/var/lib/echobridge
+StateDirectory=echobridge
+StateDirectoryMode=0700
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

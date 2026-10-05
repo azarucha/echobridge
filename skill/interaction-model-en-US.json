@@ -1,0 +1,30 @@
+{
+  "interactionModel": {
+    "languageModel": {
+      "invocationName": "my sound bridge",
+      "intents": [
+        { "name": "AMAZON.CancelIntent", "samples": [] },
+        { "name": "AMAZON.HelpIntent", "samples": [] },
+        { "name": "AMAZON.StopIntent", "samples": [] },
+        { "name": "AMAZON.PauseIntent", "samples": [] },
+        { "name": "AMAZON.ResumeIntent", "samples": [] },
+        { "name": "AMAZON.NavigateHomeIntent", "samples": [] },
+        { "name": "AMAZON.FallbackIntent", "samples": [] },
+        { "name": "AMAZON.LoopOffIntent", "samples": [] },
+        { "name": "AMAZON.LoopOnIntent", "samples": [] },
+        { "name": "AMAZON.NextIntent", "samples": [] },
+        { "name": "AMAZON.PreviousIntent", "samples": [] },
+        { "name": "AMAZON.RepeatIntent", "samples": [] },
+        { "name": "AMAZON.ShuffleOffIntent", "samples": [] },
+        { "name": "AMAZON.ShuffleOnIntent", "samples": [] },
+        { "name": "AMAZON.StartOverIntent", "samples": [] },
+        {
+          "name": "PlayStreamIntent",
+          "slots": [],
+          "samples": ["play airplay", "start the stream", "play the stream", "play music from my phone"]
+        }
+      ],
+      "types": []
+    }
+  }
+}
