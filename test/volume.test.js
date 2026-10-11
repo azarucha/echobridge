@@ -55,6 +55,41 @@ test('muting from the lowest step is a real press', async () => {
   assert.deepEqual(sent, [['G2A1', 6]]);
 });
 
+test('quick presses: one command in flight, then the latest value', async () => {
+  const { room, sent } = setup(60);
+  alexa.setVolume = async (serial, value) => { sent.push([serial, value]); await wait(600); };
+  onVolume(room, -15);
+  onVolume(room, -15 + PRESS);       // 64 is sent right away
+  await wait(200);
+  onVolume(room, -15 + 2 * PRESS);   // 68 waits
+  await wait(200);
+  onVolume(room, -15 + 3 * PRESS);   // 72 replaces 68
+  await wait(900);
+  assert.deepEqual(sent, [['G2A1', 64], ['G2A1', 72]]);
+});
+
+test('starting volume just before the session start: the first press counts', async () => {
+  const { room, sent } = setup(24);
+  onSession(room, 'end');
+  onVolume(room, -24);               // the iPhone reports its volume ...
+  onSession(room, 'start');          // ... and only then the session starts
+  room.vol.connectedAt = Date.now() - 1500;
+  onVolume(room, -24 + PRESS);       // first press
+  await wait(300);
+  assert.deepEqual(sent, [['G2A1', 28]]);
+});
+
+test('an old baseline from an earlier session is dropped', async () => {
+  const { room, sent } = setup(24);
+  onVolume(room, -24);
+  room.vol.lastEventAt = Date.now() - 5000;
+  onSession(room, 'start');
+  room.vol.connectedAt = Date.now() - 1500;
+  onVolume(room, -10);               // new iPhone volume, not a press
+  await wait(300);
+  assert.deepEqual(sent, []);
+});
+
 test('volume events right after connecting are not presses', async () => {
   const { room, sent } = setup(60);
   room.vol.connectedAt = Date.now();

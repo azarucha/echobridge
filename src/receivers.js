@@ -30,7 +30,7 @@ const DB_PER_PRESS = 30 / 16;      // iOS: 16 steps from -30 to 0 dB
 const MAX_PRESSES_PER_EVENT = 3;   // iOS sometimes merges quick presses
 const IDLE_RESET_MS = 120000;      // after a longer pause, start counting fresh
 const SEND_DELAY_MS = 150;         // merge quick presses
-const CONNECT_GRACE_MS = 3000;     // volume events right after connecting are the iPhone's level, not presses
+const CONNECT_GRACE_MS = 1000;     // volume events right after connecting are the iPhone's level, not presses
 const KNOWN_MS = 30000;            // trust a read or sent Echo volume this long, then read it again
 const STREAM_STOP_MS = 60000;      // AirPlay ended: keep the stream a while in case it continues
 const STREAM_RELAUNCH_MS = 600000; // after a long pause, relaunch the skill to be safe
@@ -129,6 +129,7 @@ function setSync(id, ms) {
 
 const newVolumeState = () => ({
   baseline: null, lastEventAt: 0, connectedAt: 0, pending: 0, timer: null, known: {}, queue: Promise.resolve(),
+  target: {}, sending: {},
 });
 
 // The Echo's real volume: never assume one, a wrong starting point turns "louder" into a big jump down
@@ -153,8 +154,28 @@ async function applySteps(room, steps) {
     room.vol.known[serial] = { value, at: Date.now() };
     if (value === from) return;
     remember({ room: room.id, serial, volume: value });
-    alexa.setVolume(serial, value).catch((err) => remember({ room: room.id, error: err.message }));
+    sendVolume(room, serial, value);
   }));
+}
+
+// At most one volume command per Echo in flight: Amazon drops commands when buttons are pressed quickly.
+// New presses only change the target; after the running command, the latest value is sent.
+function sendVolume(room, serial, value) {
+  const v = room.vol;
+  v.target[serial] = value;
+  if (v.sending[serial]) return;
+  v.sending[serial] = true;
+  (async () => {
+    let sent = null;
+    while (v.target[serial] !== sent) {
+      sent = v.target[serial];
+      await alexa.setVolume(serial, sent).catch((err) => {
+        delete v.known[serial]; // unclear whether it arrived: read it again on the next press
+        remember({ room: room.id, serial, volume: sent, error: err.message });
+      });
+    }
+    v.sending[serial] = false;
+  })();
 }
 
 function onVolume(room, db) {
@@ -193,8 +214,14 @@ function onVolume(room, db) {
 }
 
 function onSession(room, event) {
-  clearTimeout(room.vol.timer);
-  Object.assign(room.vol, { baseline: null, pending: 0, known: {}, connectedAt: event === 'start' ? Date.now() : 0 });
+  const v = room.vol;
+  // The iPhone often reports its starting volume just before the session start: keep it
+  const keep = event === 'start' && v.baseline !== null && Date.now() - v.lastEventAt < CONNECT_GRACE_MS;
+  clearTimeout(v.timer);
+  Object.assign(v, {
+    baseline: keep ? v.baseline : null, pending: 0, known: keep ? v.known : {},
+    connectedAt: event === 'start' ? Date.now() : 0,
+  });
   room.connected = event === 'start';
   remember({ room: room.id, session: event });
 }
