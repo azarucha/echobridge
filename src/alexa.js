@@ -114,10 +114,18 @@ async function setVolume(serial, value) {
   }
 }
 
+// Current speaker volume (0..100) or null. allDeviceVolumes also knows idle Echos, where getPlayerInfo
+// often has no volume; a stereo pair or group reports the volume of its first member.
 async function getVolume(serial) {
-  find(serial);
-  const res = await promisify((cb) => alexa.getPlayerInfo(serial, cb));
-  const p = (res && res.playerInfo) || {};
+  const dev = find(serial);
+  const res = await promisify((cb) => alexa.getAllDeviceVolumes(cb)).catch(() => null);
+  const list = (res && res.volumes) || [];
+  for (const dsn of [serial, ...(dev.clusterMembers || [])]) {
+    const v = list.find((x) => x.dsn === dsn);
+    if (v && typeof v.speakerVolume === 'number') return v.speakerVolume;
+  }
+  const info = await promisify((cb) => alexa.getPlayerInfo(serial, cb));
+  const p = (info && info.playerInfo) || {};
   return p.volume && typeof p.volume.volume === 'number' ? p.volume.volume : null;
 }
 
