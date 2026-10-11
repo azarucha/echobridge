@@ -34,6 +34,8 @@ shairport-sync 5.5 ignores the configured port in classic AirPlay mode. echobrid
 
 - `status` → stream level `-96 dBFS` means no audio arrives from the iPhone (is something playing?).
 - The Echo's own volume may be low: press the iPhone volume buttons (they change the Echo, not the stream).
+- Only the iPhone volume buttons change the Echo, relative to the level it reports. If Amazon doesn't report
+  it, the press is skipped (`echobridge status` log: "Echo volume unknown") instead of guessing a level.
 
 ## Alexa says she can't reach the skill
 

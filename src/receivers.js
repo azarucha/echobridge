@@ -6,6 +6,7 @@
 // Combine players with "+". If skill and Fire TV play together, each gets its own stream and one is delayed
 // so both sound in sync (setSync, stored in data/sync.json).
 // The iPhone volume buttons change the volume of the room's Echos (relative, 1 press = ECHO_VOLUME_STEP).
+// Nothing else does: no guessed levels, no changes on connecting, pausing or disconnecting.
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
@@ -29,6 +30,8 @@ const DB_PER_PRESS = 30 / 16;      // iOS: 16 steps from -30 to 0 dB
 const MAX_PRESSES_PER_EVENT = 3;   // iOS sometimes merges quick presses
 const IDLE_RESET_MS = 120000;      // after a longer pause, start counting fresh
 const SEND_DELAY_MS = 150;         // merge quick presses
+const CONNECT_GRACE_MS = 3000;     // volume events right after connecting are the iPhone's level, not presses
+const KNOWN_MS = 30000;            // trust a read or sent Echo volume this long, then read it again
 const STREAM_STOP_MS = 60000;      // AirPlay ended: keep the stream a while in case it continues
 const STREAM_RELAUNCH_MS = 600000; // after a long pause, relaunch the skill to be safe
 const FIRETV_CHECK_MS = 5000;      // Fire TV: is VLC still playing while music arrives?
@@ -91,7 +94,7 @@ function createRooms() {
       sync: Number(syncSaved()[cfg.id]) || 0,
       receiver: null,
       connected: false,
-      vol: { baseline: null, lastEventAt: 0, pending: 0, timer: null, sent: {}, echo: {} },
+      vol: newVolumeState(),
       launchedAt: 0,
       stopTimer: null,
     };
@@ -124,25 +127,57 @@ function setSync(id, ms) {
 
 // ---------------------------------------------------------------- Volume buttons
 
-async function refreshEchoVolumes(room) {
-  for (const serial of room.serials) {
-    const volume = await alexa.getVolume(serial).catch(() => null);
-    if (typeof volume === 'number') room.vol.echo[serial] = volume;
-  }
+const newVolumeState = () => ({
+  baseline: null, lastEventAt: 0, connectedAt: 0, pending: 0, timer: null, known: {}, queue: Promise.resolve(),
+});
+
+// The Echo's real volume: never assume one, a wrong starting point turns "louder" into a big jump down
+async function echoVolume(room, serial) {
+  const known = room.vol.known[serial];
+  if (known && Date.now() - known.at < KNOWN_MS) return known.value;
+  const value = await alexa.getVolume(serial).catch(() => null);
+  if (typeof value !== 'number') return null;
+  room.vol.known[serial] = { value, at: Date.now() };
+  return value;
+}
+
+// Relative per Echo: several Echos in one room keep their difference
+async function applySteps(room, steps) {
+  await Promise.all(room.serials.map(async (serial) => {
+    const from = await echoVolume(room, serial);
+    if (from === null) {
+      remember({ room: room.id, serial, error: 'Echo volume unknown, button press ignored' });
+      return;
+    }
+    const value = Math.max(0, Math.min(100, from + steps));
+    room.vol.known[serial] = { value, at: Date.now() };
+    if (value === from) return;
+    remember({ room: room.id, serial, volume: value });
+    alexa.setVolume(serial, value).catch((err) => remember({ room: room.id, error: err.message }));
+  }));
 }
 
 function onVolume(room, db) {
   room.streams.forEach((st) => st.setAirplayDb(db)); // undo shairport-sync's attenuation in the stream
   const v = room.vol;
-  const level = db <= -100 ? -30 : Math.max(-30, Math.min(0, db)); // -144 = muted
-  const fresh = v.baseline === null || Date.now() - v.lastEventAt > IDLE_RESET_MS;
-  v.lastEventAt = Date.now();
+  const now = Date.now();
+  const muted = db <= -100; // -144
+  const level = muted ? -30 : Math.max(-30, Math.min(0, db));
+  const fresh = v.baseline === null || now - v.lastEventAt > IDLE_RESET_MS || now - v.connectedAt < CONNECT_GRACE_MS;
+  v.lastEventAt = now;
   room.connected = true;
   if (fresh) {
-    // The first event after connecting is the iPhone's current volume, not a button press
+    // The first events after connecting are the iPhone's current volume, not button presses
     v.baseline = level;
     v.pending = 0;
-    refreshEchoVolumes(room);
+    clearTimeout(v.timer);
+    v.known = {};
+    room.serials.forEach((serial) => echoVolume(room, serial));
+    return;
+  }
+  // iOS mutes on its own (pausing, disconnecting): only a press from the lowest step counts as "quieter"
+  if (muted && v.baseline > -30 + DB_PER_PRESS * 1.5) {
+    remember({ room: room.id, ignored: `mute from ${v.baseline.toFixed(1)} dB` });
     return;
   }
   const raw = (level - v.baseline) / DB_PER_PRESS;
@@ -150,26 +185,16 @@ function onVolume(room, db) {
   if (Math.abs(raw) < 0.4) return;
   v.pending += Math.max(-MAX_PRESSES_PER_EVENT, Math.min(MAX_PRESSES_PER_EVENT, raw));
   clearTimeout(v.timer);
-  // Relative per Echo: several Echos in one room keep their difference
   v.timer = setTimeout(() => {
     const steps = Math.round(v.pending * config.echoVolumeStep);
     v.pending = 0;
-    if (!steps) return;
-    for (const serial of room.serials) {
-      const sent = v.sent[serial];
-      const known = typeof v.echo[serial] === 'number' ? v.echo[serial] : 30;
-      const from = sent && Date.now() - sent.at < 30000 ? sent.value : known;
-      const value = Math.max(0, Math.min(100, from + steps));
-      v.sent[serial] = { value, at: Date.now() };
-      v.echo[serial] = value;
-      remember({ room: room.id, serial, volume: value });
-      alexa.setVolume(serial, value).catch((err) => remember({ room: room.id, error: err.message }));
-    }
+    if (steps) v.queue = v.queue.then(() => applySteps(room, steps)).catch(() => {});
   }, SEND_DELAY_MS);
 }
 
 function onSession(room, event) {
-  Object.assign(room.vol, { baseline: null, pending: 0, sent: {} });
+  clearTimeout(room.vol.timer);
+  Object.assign(room.vol, { baseline: null, pending: 0, known: {}, connectedAt: event === 'start' ? Date.now() : 0 });
   room.connected = event === 'start';
   remember({ room: room.id, session: event });
 }
@@ -341,4 +366,5 @@ function status() {
 
 module.exports = {
   start, status, setSync, parseRooms, parsePlayers, log: () => log,
+  _test: { onVolume, onSession, newVolumeState },
 };
