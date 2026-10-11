@@ -24,7 +24,8 @@ Linux box in your home (Raspberry Pi, NAS, old laptop) into one AirPlay receiver
 - **Real audio from any app**, not a "search the same song on Alexa" trick, so it works with a single-device
   Apple Music plan
 - **~2 s latency** for start, pause and skip (AirPlay's own 2 s buffer is mostly removed)
-- **iPhone volume buttons** change the Echo's volume (relative, configurable step)
+- **iPhone volume buttons** change the Echo's volume (relative to its real level, configurable step); nothing
+  else does, no jumps when connecting or pausing
 - **Stereo in a Fire TV home theater**: the custom skill only plays on one speaker of a home theater pair, so
   echobridge can play the room through VLC on the Fire TV instead, which the home theater spreads in stereo
 - **Combined rooms** ("Everywhere"): one receiver that plays on several rooms at once, with an adjustable offset
